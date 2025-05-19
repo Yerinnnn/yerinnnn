@@ -29,7 +29,7 @@ Here are some ideas to get you started:
 
 # 👋 Hi there, I'm Yerin!
 
-> 🐻 개발자 | 2025 크래프톤 정글 부트캠프 참가 중
+> 🐻 백엔드 개발자 | 2025 크래프톤 정글 부트캠프 참가 중
 
 ---
 
