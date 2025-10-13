@@ -260,7 +260,8 @@ img {
 }
 
 .hero-content {
-    animation: fadeInUp 1s ease-out;
+    animation: fadeInUp 1s ease-out forwards;
+    opacity: 1;
 }
 
 @keyframes fadeInUp {
