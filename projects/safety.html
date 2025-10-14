@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근로자를 위한 실시간 안전 모니터링 시스템 - Portfolio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐰</text></svg>">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">← Back</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="sun-icon">☀️</span>
+                <span class="moon-icon">🌙</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Detail Section -->
+    <section class="detail-section">
+        <div class="container">
+            <div class="detail-header">
+                <h1 class="detail-title">근로자를 위한 실시간 안전 모니터링 시스템</h1>
+                <p class="detail-period">📆 2024.07 - 2024.08</p>
+            </div>
+
+            <div class="detail-content">
+                <div class="detail-block">
+                    <h2>프로젝트 개요</h2>
+                    <ul class="detail-list">
+                        <li>산업·사무 환경 CCTV .ts 세그먼트를 GPU 기반 YOLO 복수 모델로 동시 추론해 화재·추락·안전모 미착용을 감지하고 시각화한 뒤 HLS 스트림으로 재생성, Elasticsearch로 이벤트 메트릭을 적재하는 실시간 파이프라인을 구축했습니다 (cctv-process.py:16-218, config/industrial_config.json:2-5).</li>
+                        <li>근로자 얼굴 카메라 스트림에서 심박·자세·스트레스 지수를 추출해 UI 오버레이와 시계열 데이터를 동시에 만들어 운영 대시보드로 전송했습니다 (facecam/facecam.py:82-182, facecam/heart_rate_monitor.py:12-138, facecam/posture_monitor.py:6-62).</li>
+                        <li>S3 연동 유틸로 원본 스트림을 받아 가공 결과를 다시 업로드하는 배치 도구를 제공해 배포 환경 간 파일 파이프라인을 표준화했습니다 (ts-model-ts.py:1-118, s3-test.py:1-31).</li>
+                    </ul>
+                </div>
+
+                <div class="detail-block">
+                    <h2>내 역할</h2>
+                    <ul class="detail-list">
+                        <li>실시간 추론 루프와 HLS 세그먼트 관리 전반을 직접 설계·구현하고, 다중 모델 병렬 추론 및 GPU 활용 최적화를 진행했습니다 (cctv-process.py:135-194).</li>
+                        <li>Elasticsearch 인덱싱, TS 파일 롤링, ffmpeg 변환 등 백엔드 작업을 자동화하고 운영 파라미터를 환경별 JSON 설정으로 분리했습니다 (cctv-process.py:214-268, config/*.json).</li>
+                        <li>Facecam 바이탈 분석 모듈을 통합해 TensorFlow·Mediapipe·dlib을 조합한 스트레스 지수 산출과 영상 오버레이 파이프라인을 완성했습니다 (facecam/facecam.py:112-181, facecam/put_text.py:6-53).</li>
+                    </ul>
+                </div>
+
+                <div class="detail-block">
+                    <h2>사용 기술 스택</h2>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 12px;">Backend & Vision</h4>
+                        <div class="project-tech">
+                            <span class="tech-badge">Python</span>
+                            <span class="tech-badge">OpenCV</span>
+                            <span class="tech-badge">YOLO</span>
+                            <span class="tech-badge">TensorFlow</span>
+                            <span class="tech-badge">Mediapipe</span>
+                            <span class="tech-badge">dlib</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 12px;">Data Pipeline</h4>
+                        <div class="project-tech">
+                            <span class="tech-badge">ffmpeg</span>
+                            <span class="tech-badge">ThreadPoolExecutor</span>
+                            <span class="tech-badge">Elasticsearch</span>
+                            <span class="tech-badge">NDJSON</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 12px;">Cloud & Ops</h4>
+                        <div class="project-tech">
+                            <span class="tech-badge">AWS S3</span>
+                            <span class="tech-badge">boto3</span>
+                            <span class="tech-badge">HLS (M3U8)</span>
+                            <span class="tech-badge">CUDA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-block">
+                    <h2>트러블슈팅</h2>
+
+                    <div class="troubleshooting-item">
+                        <h3>상황 1 - 프레임 지연 문제</h3>
+                        <h4>상황</h4>
+                        <p>YOLO 탐지와 세그멘테이션 모델을 연이어 호출하면서 프레임 지연이 과도하게 발생했습니다 (cctv-process.py:135-190).</p>
+
+                        <h4>해결</h4>
+                        <p>동일 프레임을 대상으로 스레드 풀을 구성해 모델별 추론을 병렬 실행하고 프레임 간 결과를 캐시했습니다.</p>
+
+                        <h4>결과</h4>
+                        <p>평균 처리 시간 30% 단축, 초당 처리 프레임이 안정화되었습니다.</p>
+                    </div>
+
+                    <div class="troubleshooting-item">
+                        <h3>상황 2 - Elasticsearch 인덱싱 오류</h3>
+                        <h4>상황</h4>
+                        <p>Elasticsearch 단건 인덱싱 중 413 Payload Too Large 오류가 발생하며 스트림 지표 적재가 끊겼습니다 (cctv-process.py:171-199, cctv-process.py:271-286).</p>
+
+                        <h4>해결</h4>
+                        <p>NDJSON 버퍼를 90MB 기준으로 배치 전송하고 실패 시 재시도 로직을 분리했습니다.</p>
+
+                        <h4>결과</h4>
+                        <p>인덱싱 실패율 0%로 감소, 운영 알람 해소.</p>
+                    </div>
+
+                    <div class="troubleshooting-item">
+                        <h3>상황 3 - Facecam 심박 계산 불안정</h3>
+                        <h4>상황</h4>
+                        <p>Facecam 심박 계산이 조도 변화에 민감해 스트레스 지수가 급등락했습니다(facecam/heart_rate_monitor.py:31-134).</p>
+
+                        <h4>해결</h4>
+                        <p>전처리 버퍼를 초기화하고 대역 통과 필터·RMSSD 기반 스트레스 산식을 도입했습니다.</p>
+
+                        <h4>결과</h4>
+                        <p>BPM 표준편차가 40% 감소해 모니터링 신뢰도가 개선되었습니다.</p>
+                    </div>
+                </div>
+
+                <div class="detail-block">
+                    <h2>후기</h2>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 8px;">느낀점</h4>
+                        <p>GPU 자원과 ffmpeg 파이프라인을 정교하게 조율하면 실시간 분석에서도 백엔드 구조화가 큰 차이를 만든다는 것을 체감했습니다.</p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 8px;">아쉬운점</h4>
+                        <p>현재는 모델 추론 결과를 Elasticsearch에만 적재해 알림 시스템과의 연계가 부족합니다.</p>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 8px;">해결방안</h4>
+                        <p>1) 이벤트 큐(Kafka 등)와 웹훅 알림을 붙여 실시간 경보 흐름을 추가하고 2) Kibana 대시보드에 Facecam 지표를 결합해 현장별 건강·안전 상태를 한 화면에서 확인하도록 확장하면 좋을 것 같다고 생각했습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Yerin's Portfolio. All rights reserved.</p>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pintos - Portfolio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐰</text></svg>">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">← Back</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="sun-icon">☀️</span>
+                <span class="moon-icon">🌙</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Detail Section -->
+    <section class="detail-section">
+        <div class="container">
+            <div class="detail-header">
+                <h1 class="detail-title">Pintos</h1>
+                <p class="detail-period">📆 크래프톤 정글 | 2025.07 - 2025.08</p>
+            </div>
+
+            <div class="detail-content">
+                <div class="detail-block">
+                    <h2>프로젝트 설명</h2>
+                    <p>교육용 운영체제 pintos의 thread, system call, virtual memory를 구현</p>
+                </div>
+
+                <div class="detail-block">
+                    <h2>사용 기술 스택</h2>
+                    <div class="project-tech">
+                        <span class="tech-badge">C</span>
+                        <span class="tech-badge">OS</span>
+                    </div>
+                </div>
+
+                <div class="detail-block">
+                    <h2>트러블슈팅</h2>
+
+                    <div class="troubleshooting-item">
+                        <h3>페이지 폴트 시 스택 확장</h3>
+
+                        <div style="text-align: center; margin: 32px 0;">
+                            <img src="../assets/images/stack_growth.gif" alt="Stack Growth Animation" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+                        </div>
+
+                        <h4>문제</h4>
+                        <p>가상 메모리 시스템 구현 중, 사용자 스택 영역에 접근할 때 해당 페이지가 존재하지 않으면 페이지 폴트가 발생했습니다. 처음에는 현재의 rsp부터 참조 주소 addr까지 모든 영역을 새로 할당해야 한다고 생각했으나, 이는 잘못된 접근이었습니다. 실제로 Push 명령이 호출되면 rsp는 이미 감소하여 필요한 메모리(스택 공간)을 확보합니다.</p>
+
+                        <h4>해결</h4>
+                        <p>스택 접근으로 판단되는 경우(<code>addr</code>이 <code>rsp</code>보다 높으면서, <code>addr</code>이 <code>USER_STACK</code> 이하이며, <code>addr</code>이 <code>rsp - 8</code> 이상의 범위에 있을 때)에 한해, <code>addr</code>이 속한 페이지 <strong>단 한 페이지만</strong> 새로 할당하도록 구현했습니다. 이를 통해 불필요한 메모리 할당 없이 정상적인 스택 확장이 가능해졌습니다.</p>
+
+                        <p>이 로직은 <code>vm_try_handle_fault()</code>에서 스택 확장 여부를 판별 후 <code>vm_stack_growth()</code>를 호출하는 구조로 적용했습니다. 해당 수정 이후 <code>pt-grow-stack</code>, <code>pt-write-code2</code> 테스트를 모두 통과하며, 정상적인 스택 확장 동작을 확인했습니다.</p>
+                    </div>
+                </div>
+
+                <div class="detail-block">
+                    <h2>후기</h2>
+                    <p>운영체제의 가상 메모리 시스템을 직접 구현하면서 메모리 관리의 세밀한 부분까지 이해할 수 있었습니다. 특히 스택 확장 로직에서 "얼마나 할당할 것인가"에 대한 판단이 성능과 안정성에 직접적인 영향을 미친다는 것을 체감했습니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Yerin's Portfolio. All rights reserved.</p>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>

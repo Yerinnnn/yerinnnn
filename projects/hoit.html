@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoit - Portfolio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐰</text></svg>">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">← Back</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="sun-icon">☀️</span>
+                <span class="moon-icon">🌙</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Detail Section -->
+    <section class="detail-section">
+        <div class="container">
+            <div class="detail-header">
+                <h1 class="detail-title">Hoit</h1>
+                <p class="detail-period">📆 크래프톤 정글 | 2025.08 - 2025.09</p>
+            </div>
+
+            <div class="detail-content">
+                <div class="detail-block">
+                    <h2>내 역할</h2>
+                    <p>Infra, Backend</p>
+                </div>
+
+                <div class="detail-block">
+                    <h2>사용 기술 스택</h2>
+                    <div class="project-tech">
+                        <span class="tech-badge">AWS</span>
+                        <span class="tech-badge">FastAPI</span>
+                        <span class="tech-badge">PostgreSQL</span>
+                        <span class="tech-badge">Terraform</span>
+                    </div>
+                </div>
+
+                <div class="detail-block">
+                    <h2>트러블슈팅</h2>
+
+                    <div class="troubleshooting-item">
+                        <h3>1. CloudFront Loop</h3>
+                        <h4>문제</h4>
+                        <p>커스텀 도메인(ho-it.site)을 CloudFront에 붙인 직후 /api/* 호출이 301 루프를 돌다가 502로 떨어졌습니다. 배포 직후 정상 동작했지만 몇 분 후부터 헬스체크까지 모두 실패해 사용자가 API를 전혀 쓰지 못했습니다.</p>
+
+                        <h4>분석</h4>
+                        <p>curl -I https://ho-it.site/api/health 결과가 Via: CloudFront 헤더를 반복 출력하는 것을 보고, 오리진이 다시 CloudFront 자신을 가리키며 순환 요청이 발생한다고 판단했습니다. ALB 액세스 로그에는 트래픽이 들어오지 않아 오리진 단계에서 막히는 증거가 되었습니다.</p>
+
+                        <h4>시도</h4>
+                        <p>SSL 문제를 의심해 오리진 프로토콜을 https-only로 강제(Commit 7010775)했지만 증상이 지속됐고, 캐시 무효화와 ACM 갱신도 모두 실패했습니다. Route53 헬스체크 역시 연속으로 타임아웃되어 DNS 자체가 잘못 물리는 것이 아님을 확인했습니다.</p>
+
+                        <h4>해결책</h4>
+                        <p>CloudFront 오리진을 ALB의 DNS(aws_lb.main.dns_name)로 되돌리고, ALB와는 HTTP로만 통신하도록 명시해 루프를 근본적으로 차단했습니다(cloudfront.tf:17, cloudfront.tf:25, commit aabf7c3). /api/* 동작이 S3로 튕기지 않게 target_origin_id도 일관되게 정리했습니다(cloudfront.tf:78).</p>
+
+                        <h4>성과</h4>
+                        <p>오류율 100%였던 API 엔드포인트가 즉시 정상화되었고, CloudWatch에서 5xx 빈도가 0으로 떨어졌습니다. 이번 경험을 토대로 "오리진에는 항상 ALB 엔드포인트를 사용한다"는 체크리스트를 문서화해 이후 배포에서도 동일한 실수를 방지했습니다.</p>
+                    </div>
+
+                    <div class="troubleshooting-item">
+                        <h3>2. ML Networking</h3>
+                        <h4>문제</h4>
+                        <p>Fargate API에서 GPU EC2에 배포한 ML 모델 서버로 요청을 보내면 무조건 curl: (7) Failed to connect to 10.0.10.42:8080으로 터졌습니다. 웹은 정상인데 ML 파이프라인만 멈춰 팀 전체 작업이 중단됐습니다.</p>
+
+                        <h4>분석</h4>
+                        <p>새 GPU 서버는 Ubuntu 22.04 + Docker 세팅으로 포트 8001에 서비스를 띄우도록 user-data를 작성했는데(user_data/model_server_docker.sh:66), ECS 태스크 환경변수는 여전히 이전 포트(8080)를 바라보고 있었습니다. 더 문제는 Fargate에 execute-command가 꺼져 있어 컨테이너 내부 상태를 확인할 방법이 없다는 점이었습니다.</p>
+
+                        <h4>시도</h4>
+                        <p>우선 SG 간 통신을 의심해 임시로 모든 포트를 열어 봤지만 증상이 동일했습니다. 네트워크 흐름을 추적하려면 컨테이너 쉘 접근이 필요해 enable_execute_command를 켠 뒤 SSM 권한을 ECS Task Role에 부여했습니다(ecs.tf 내 설정, iam.tf:77). 이후 aws ecs execute-command로 접속해 curl $MODEL_SERVER_URL을 실행해보니 8080으로 향하고 있는 로그를 직접 확인할 수 있었습니다.</p>
+
+                        <h4>해결책</h4>
+                        <p>ML 서버와의 포트를 8001로 정착시키고 이름도 다시 MODEL_SERVER_URL로 통일했습니다(Commit 568a69b). 동시에 ECS SG → ML SG 인바운드 규칙도 8001로 맞춰 재구성했습니다(security_groups.tf:77). 마지막으로 CloudWatch에 API/ML 지표를 묶어 대조해 이상징후를 조기에 잡을 수 있게 했습니다.</p>
+
+                        <h4>성과</h4>
+                        <p>수정 직후 /api/jobs 처리 시간이 8초대에서 1.6초로 감소했고, ML 파이프라인이 다시 하루 50건 이상을 안정적으로 소화했습니다. 무엇보다 Execute Command 기반 진단 플레이북을 남겨 추후 네트워크 계층 문제 대응 시간을 크게 줄였습니다.</p>
+                    </div>
+
+                    <div class="troubleshooting-item">
+                        <h3>3. ML 서버 셋팅 의존성 문제</h3>
+                        <h4>문제</h4>
+                        <p>AMI에 사전 설치된 라이브러리와 음성 분석 모델 간의 의존성 충돌 발생, 시스템 드라이버(CUDA), 파이썬 라이브러리 호환성 문제 발생</p>
+
+                        <h4>해결</h4>
+                        <p>가상환경, 도커 등 다양한 방식을 시도했지만 실패함. <strong>라이브러리 버전 고정 (의존성 지옥에 따른 60개의 의존성 해결 버전 구축 및 검증된 버전으로 통일)</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Yerin's Portfolio. All rights reserved.</p>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>
