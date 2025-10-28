@@ -6,11 +6,17 @@ export function generateStaticParams() {
   }));
 }
 
-export default function ProjectDetailPage({ params }: { params: { slug: string } }) {
+export default async function ProjectDetailPage({
+  params
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params;
+
   return (
     <div>
       <h1>Project Detail Page</h1>
-      <p>Slug: {params.slug}</p>
+      <p>Slug: {slug}</p>
     </div>
   );
 }
